@@ -53,18 +53,23 @@ final class EmployeePairPresenter: NSObject, EmployeePairPresenterProtocol {
 
     func load(url: URL?) {
         guard let url = url, url.startAccessingSecurityScopedResource() else {
+            view?.showGetClientError(error: EmployeeProject.Error.fileNotFound(name: url?.absoluteString ?? ""))
             return
         }
         // Make sure you release the security-scoped resource when you finish.
         defer { url.stopAccessingSecurityScopedResource() }
-        let employees = try? EmployeeProject.parseCSV(url: url)
-        guard let employees else {
-            return
+        do {
+            let employees = try EmployeeProject.parseCSV(url: url)
+            guard let employees else {
+                return
+            }
+            tableViewSections = [EmployeePairSectionModel(header:
+                                                            EmployeePairSectionModel.Header(title: "Total time worked together", subtitle: "\(String(employees.reduce(0, {$0 + $1.daysWorked}))) days"),
+                                                          items: employees.map { EmployeePairSectionModel.EmployeePairItem.init($0) })]
+            view?.setupContent()
+        } catch let error {
+            view?.showGetClientError(error: error)
         }
-        tableViewSections = [EmployeePairSectionModel(header:
-                                                        EmployeePairSectionModel.Header(title: "Total time worked together", subtitle: "\(String(employees.reduce(0, {$0 + $1.daysWorked}))) days"),
-                                                      items: employees.map { EmployeePairSectionModel.EmployeePairItem.init($0) })]
-        view?.setupContent()
     }
 
     func selectFile() {
@@ -80,6 +85,7 @@ final class EmployeePairPresenter: NSObject, EmployeePairPresenterProtocol {
 extension EmployeePairPresenter: UIDocumentPickerDelegate {
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         guard let url = urls.first else {
+            view?.showGetClientError(error: EmployeeProject.Error.fileNotFound(name: ""))
             return
         }
         

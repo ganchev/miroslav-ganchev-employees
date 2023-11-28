@@ -10,6 +10,7 @@ import UIKit
 protocol EmployeePairViewViewDelegate: AnyObject {
     func setupContent()
     func present(_ viewController: UIViewController)
+    func showGetClientError(error: Error)
 }
 
 final class EmployeePairViewController: UIViewController {
@@ -41,7 +42,6 @@ final class EmployeePairViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupLayout()
-        presenter.load(url: nil)
     }
 
     private func setupLayout() {
@@ -117,13 +117,11 @@ extension EmployeePairViewController: EmployeePairViewViewDelegate {
         present(viewController, animated: true)
     }
     
-    func showGetClientError(error: Error, shouldDismiss: Bool) {
+    func showGetClientError(error: Error) {
         let alertController = UIAlertController(title: "Error during API communication",
                                                 message: error.localizedDescription,
                                                 preferredStyle: .alert)
-        alertController.addAction(UIAlertAction(title: "Dismiss", style: .default) { [weak self] _ in
-            self?.dismiss(animated: true)
-        })
+        alertController.addAction(UIAlertAction(title: "Dismiss", style: .default))
         self.present(alertController, animated: true)
     }
 }

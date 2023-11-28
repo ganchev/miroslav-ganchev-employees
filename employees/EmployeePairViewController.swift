@@ -9,6 +9,7 @@ import UIKit
 
 protocol EmployeePairViewViewDelegate: AnyObject {
     func setupContent()
+    func present(_ viewController: UIViewController)
 }
 
 final class EmployeePairViewController: UIViewController {
@@ -18,6 +19,10 @@ final class EmployeePairViewController: UIViewController {
         .with(\.backgroundColor, .systemGroupedBackground)
         .with(\.delegate, self)
         .with(\.dataSource, self)
+        .with(\.rowHeight, UITableView.automaticDimension)
+        .with(\.estimatedRowHeight, UITableView.automaticDimension)
+        .with(\.estimatedSectionHeaderHeight, 100)
+        .with(\.sectionHeaderHeight, UITableView.automaticDimension)
         .with {
             $0.register(TitleSubtitleHeader.self, forHeaderFooterViewReuseIdentifier: TitleSubtitleHeader.reuseIdentifier)
             $0.register(EmployeePairCell.self, forCellReuseIdentifier: EmployeePairCell.reuseIdentifier)
@@ -36,7 +41,7 @@ final class EmployeePairViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupLayout()
-        presenter.load()
+        presenter.load(url: nil)
     }
 
     private func setupLayout() {
@@ -52,6 +57,8 @@ final class EmployeePairViewController: UIViewController {
         navBarAppearance.backgroundColor = .systemGroupedBackground
         navigationItem.standardAppearance = navBarAppearance
         navigationItem.scrollEdgeAppearance = navBarAppearance
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(selectFileTapped))
+
     }
 
     @objc private func selectFileTapped() {
@@ -83,6 +90,17 @@ extension EmployeePairViewController: UITableViewDelegate, UITableViewDataSource
 
         return nil
     }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if let section = presenter.tableViewSections[safe: section], section.header != nil {
+            return UITableView.automaticDimension
+        }
+        return .leastNonzeroMagnitude
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        UITableView.automaticDimension
+    }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let section = presenter.tableViewSections[section]
@@ -93,5 +111,19 @@ extension EmployeePairViewController: UITableViewDelegate, UITableViewDataSource
 extension EmployeePairViewController: EmployeePairViewViewDelegate {
     func setupContent() {
         tableView.reloadData()
+    }
+    
+    func present(_ viewController: UIViewController) {
+        present(viewController, animated: true)
+    }
+    
+    func showGetClientError(error: Error, shouldDismiss: Bool) {
+        let alertController = UIAlertController(title: "Error during API communication",
+                                                message: error.localizedDescription,
+                                                preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "Dismiss", style: .default) { [weak self] _ in
+            self?.dismiss(animated: true)
+        })
+        self.present(alertController, animated: true)
     }
 }

@@ -18,12 +18,38 @@ final class TitleSubtitleHeader: UITableViewHeaderFooterView {
         .with(\.textAlignment, .center)
         .with(\.numberOfLines, .zero)
         .with(\.font, .preferredFont(forTextStyle: .title2))
+    
 
-    private lazy var stackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+    private lazy var stackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel, labelsStackView])
         .with(\.axis, .vertical)
         .with(\.isLayoutMarginsRelativeArrangement, true)
-        .with(\.directionalLayoutMargins, .init(top: 16, leading: 24, bottom: 32, trailing: 24))
+        .with(\.directionalLayoutMargins, .init(top: 16, leading: 16, bottom: 24, trailing: 16))
+        .with(\.spacing, 8)
+    
+    private lazy var employee1Label = UILabel()
+        .with(\.numberOfLines, .zero)
+        .with(\.text, NSLocalizedString("Employee 1", comment: ""))
+        .with(\.font, .preferredFont(forTextStyle: .body))
+
+    private lazy var employee2Label = UILabel()
+        .with(\.font, .preferredFont(forTextStyle: .body))
+        .with(\.numberOfLines, .zero)
+        .with(\.text, NSLocalizedString("Employee 2", comment: ""))
+    
+    private lazy var projectLabel = UILabel()
+        .with(\.numberOfLines, .zero)
+        .with(\.font, .preferredFont(forTextStyle: .body))
+        .with(\.text, NSLocalizedString("Project ID", comment: ""))
+
+    private lazy var timeWorkedLabel = UILabel()
+        .with(\.font, .preferredFont(forTextStyle: .body))
+        .with(\.text, NSLocalizedString("Time worked", comment: ""))
+        .with(\.numberOfLines, .zero)
+
+    private lazy var labelsStackView = UIStackView(arrangedSubviews: [employee1Label, employee2Label, projectLabel, timeWorkedLabel])
+        .with(\.axis, .horizontal)
         .with(\.spacing, 4)
+        .with(\.distribution, .fillEqually)
 
     override init(reuseIdentifier: String?) {
         super.init(reuseIdentifier: reuseIdentifier)
@@ -41,13 +67,11 @@ final class TitleSubtitleHeader: UITableViewHeaderFooterView {
     }
 
     private func setup() {
-        stackView.addArrangedSubview(titleLabel)
-        stackView.addArrangedSubview(subtitleLabel)
         contentView.addSubview(stackView, with: [
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor)
+            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         ])
     }
 }

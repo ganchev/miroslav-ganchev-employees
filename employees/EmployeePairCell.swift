@@ -36,6 +36,7 @@ final class EmployeePairCell: UITableViewCell {
     private lazy var labelsStackView = UIStackView(arrangedSubviews: [employee1Label, employee2Label, projectLabel, timeWorkedLabel])
         .with(\.axis, .horizontal)
         .with(\.spacing, 4)
+        .with(\.distribution, .fillEqually)
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
@@ -45,6 +46,15 @@ final class EmployeePairCell: UITableViewCell {
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented, please use init(reuseIdentifier: String?)")
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+
+        employee1Label.text = nil
+        employee2Label.text = nil
+        projectLabel.text = nil
+        timeWorkedLabel.text = nil
     }
 
     func configure(with model: EmployeePairCellModelProtocol) {

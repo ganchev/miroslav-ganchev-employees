@@ -21,6 +21,12 @@ struct EmployeePairSectionModel {
         var employee2ID: String
         var projectID: String
         var timeWorked: String
+        init(_ project: PairProject) {
+            employee1ID = project.employee1ID
+            employee2ID = project.employee2ID
+            projectID = project.projectID
+            timeWorked = String(project.daysWorked)
+        }
     }
 }
 
@@ -32,11 +38,11 @@ protocol TitleSubtitleHeaderModel {
 protocol EmployeePairPresenterProtocol {
     var tableViewSections: [EmployeePairSectionModel] { get }
 
-    func load()
+    func load(url: URL?)
     func selectFile()
 }
 
-final class EmployeePairPresenter: EmployeePairPresenterProtocol {
+final class EmployeePairPresenter: NSObject, EmployeePairPresenterProtocol {
     weak var view: EmployeePairViewViewDelegate?
 
     var tableViewSections: [EmployeePairSectionModel] = []
@@ -45,10 +51,41 @@ final class EmployeePairPresenter: EmployeePairPresenterProtocol {
         self.tableViewSections = viewModel
     }
 
-    func load() {
+    func load(url: URL?) {
+        guard let url = url, url.startAccessingSecurityScopedResource() else {
+            return
+        }
+        // Make sure you release the security-scoped resource when you finish.
+        defer { url.stopAccessingSecurityScopedResource() }
+        let employees = try? EmployeeProject.parseCSV(url: url)
+        guard let employees else {
+            return
+        }
+        tableViewSections = [EmployeePairSectionModel(header:
+                                                        EmployeePairSectionModel.Header(title: "Total time worked together", subtitle: "\(String(employees.reduce(0, {$0 + $1.daysWorked}))) days"),
+                                                      items: employees.map { EmployeePairSectionModel.EmployeePairItem.init($0) })]
         view?.setupContent()
     }
 
     func selectFile() {
+        let documentsPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.commaSeparatedText])
+        documentsPicker.delegate = self
+        documentsPicker.allowsMultipleSelection = false
+        documentsPicker.modalPresentationStyle = .fullScreen
+        view?.present(documentsPicker)
+    }
+}
+
+//MARK: - Ext. Delegate DocumentPicker
+extension EmployeePairPresenter: UIDocumentPickerDelegate {
+    public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let url = urls.first else {
+            return
+        }
+        
+        self.load(url: url)
+    }
+
+    public func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
     }
 }
